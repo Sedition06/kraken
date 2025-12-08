@@ -1,0 +1,37 @@
+.clickable:before {
+    font-family: 'FontAwesome';
+    content: "\f106";
+    float: right;
+}
+.clickable.collapsed:before {
+    /* symbol for "collapsed" panels */
+    content: "\f107";
+}
+
+.bottom-right
+{
+    right: 8px;
+    bottom: 8px;
+    position: absolute;
+}
+
+.bottom-left
+{
+    left: 0;
+    bottom: 0;
+    position: absolute;
+}
+
+.flag-right {
+    /* german flag */
+    right: 77px;
+    top: 10px;
+    position: absolute;
+}
+
+.flag-right1 {
+    /* british flag */
+    right: 0px;
+    top: 10px;
+    position: absolute;
+}
