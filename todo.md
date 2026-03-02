@@ -34,4 +34,9 @@
 - [x] OAuth-Pflichtprüfung aus Server entfernen (nur noch Info-Log, kein Error mehr)
 - [x] VITE_ANALYTICS_ENDPOINT und VITE_ANALYTICS_WEBSITE_ID aus index.html entfernt
 - [x] Server startet ohne externe Dienste sauber
-- [ ] GitHub Push nach Cleanup
+- [x] GitHub Push nach Cleanup (77a82a7)
+
+## Fixes (Phase 4)
+- [x] Oracle PLE-Lookup (11g) entfernt, statische JDBC-Konfiguration direkt genutzt (kein NJS-138 mehr)
+- [x] Sprachumschalter DE/EN als Toggle-Schieberegler implementiert
+- [x] Workflow-Dropdowns durch Custom ColorSelect ersetzt (Farben beim Öffnen sichtbar)

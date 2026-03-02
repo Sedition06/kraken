@@ -3,6 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useKrakenForm } from "@/hooks/useKrakenForm";
 import { CollapsiblePanel } from "@/components/CollapsiblePanel";
 import { KrakenSelect } from "@/components/KrakenSelect";
+import { ColorSelect } from "@/components/ColorSelect";
 import { MultiSelect } from "@/components/MultiSelect";
 import {
   IMAGES, VERSION, ENVIRONMENTS, FOOTPRINTS,
@@ -178,18 +179,43 @@ export default function Home() {
                   />
                 </td>
                 <td colSpan={2} style={{ textAlign: "right", verticalAlign: "top" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "6px" }}>
-                    <img src={IMAGES.flagGermany} alt="DE" width={20} height={20} />
-                    <label style={{ display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        id="lang-switch"
-                        checked={lang === "en"}
-                        onChange={(e) => setLang(e.target.checked ? "en" : "de")}
-                        style={{ width: "16px", height: "16px" }}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "8px" }}>
+                    <img src={IMAGES.flagGermany} alt="DE" width={22} height={22} style={{ opacity: lang === "de" ? 1 : 0.45, transition: "opacity 0.2s" }} />
+                    {/* Toggle slider */}
+                    <div
+                      role="switch"
+                      aria-checked={lang === "en"}
+                      tabIndex={0}
+                      onClick={() => setLang(lang === "de" ? "en" : "de")}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLang(lang === "de" ? "en" : "de"); } }}
+                      style={{
+                        width: "44px",
+                        height: "22px",
+                        borderRadius: "11px",
+                        backgroundColor: lang === "en" ? "#0055a4" : "#cc0000",
+                        position: "relative",
+                        cursor: "pointer",
+                        transition: "background-color 0.25s",
+                        flexShrink: 0,
+                        border: "2px solid rgba(0,0,0,0.15)",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "2px",
+                          left: lang === "en" ? "22px" : "2px",
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "50%",
+                          backgroundColor: "white",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                          transition: "left 0.25s",
+                        }}
                       />
-                      <img src={IMAGES.flagUK} alt="EN" width={20} height={20} />
-                    </label>
+                    </div>
+                    <img src={IMAGES.flagUK} alt="EN" width={22} height={22} style={{ opacity: lang === "en" ? 1 : 0.45, transition: "opacity 0.2s" }} />
                   </div>
                 </td>
               </tr>
@@ -383,14 +409,14 @@ export default function Home() {
             {!form.o2 && (
               <tr>
                 <th style={ls} title={t.ttKaa}><label htmlFor="sel-wf-kaa">KAA</label></th>
-                <td style={cs}><KrakenSelect id="sel-wf-kaa" value={form.wfKaa} options={getWfKaa()} onChange={(v) => updateField("wfKaa", v)} colorCoded /></td>
+                <td style={cs}><ColorSelect id="sel-wf-kaa" value={form.wfKaa} options={getWfKaa()} onChange={(v) => updateField("wfKaa", v)} colorCoded placeholder={t.noSelection} /></td>
                 <th style={ls} title={t.ttKad}><label htmlFor="sel-wf-kad">KAD</label></th>
-                <td style={cs}><KrakenSelect id="sel-wf-kad" value={form.wfKad} options={getWfKad()} onChange={(v) => updateField("wfKad", v)} colorCoded /></td>
+                <td style={cs}><ColorSelect id="sel-wf-kad" value={form.wfKad} options={getWfKad()} onChange={(v) => updateField("wfKad", v)} colorCoded placeholder={t.noSelection} /></td>
               </tr>
             )}
             <tr>
               <th style={ls} title={t.ttKai}><label htmlFor="sel-wf-kai">KAI</label></th>
-              <td style={cs}><KrakenSelect id="sel-wf-kai" value={form.wfKai} options={getWfKai()} onChange={(v) => updateField("wfKai", v)} colorCoded /></td>
+              <td style={cs}><ColorSelect id="sel-wf-kai" value={form.wfKai} options={getWfKai()} onChange={(v) => updateField("wfKai", v)} colorCoded placeholder={t.noSelection} /></td>
               <td colSpan={2} />
             </tr>
           </CollapsiblePanel>
