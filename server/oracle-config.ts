@@ -107,20 +107,39 @@ const WIZARD_URLS: Record<string, Record<string, string>> = {
  */
 export function getFallbackDbConfig(env: string, app: string, region: string): JdbcUrl | null {
   const envUpper = env.toUpperCase();
-  
+  console.log(`[Oracle-Config] getFallbackDbConfig: env="${env}" (→ key "${envUpper}") app="${app}" region="${region}"`);
+
   switch (app.toUpperCase()) {
-    case "MAMAS":
-      return MAMAS_URLS[envUpper] ? parseJdbcUrl(MAMAS_URLS[envUpper]) : null;
-    case "ADS":
-      return ADS_URLS[envUpper] ? parseJdbcUrl(ADS_URLS[envUpper]) : null;
+    case "MAMAS": {
+      const jdbc = MAMAS_URLS[envUpper];
+      console.log(`[Oracle-Config] MAMAS URL for key "${envUpper}": ${jdbc ?? "NOT FOUND"}`);
+      if (!jdbc) return null;
+      const parsed = parseJdbcUrl(jdbc);
+      console.log(`[Oracle-Config] MAMAS parsed: user=${parsed.user} connectString=${parsed.connectString}`);
+      return parsed;
+    }
+    case "ADS": {
+      const jdbc = ADS_URLS[envUpper];
+      console.log(`[Oracle-Config] ADS URL for key "${envUpper}": ${jdbc ?? "NOT FOUND"}`);
+      if (!jdbc) return null;
+      const parsed = parseJdbcUrl(jdbc);
+      console.log(`[Oracle-Config] ADS parsed: user=${parsed.user} connectString=${parsed.connectString}`);
+      return parsed;
+    }
     case "WIZARD": {
       const regionKey = region.replace("R", "").padStart(2, "0");
       const wizEnv = WIZARD_URLS[envUpper];
+      console.log(`[Oracle-Config] WIZARD env "${envUpper}" found: ${!!wizEnv}, regionKey="${regionKey}"`);
       if (!wizEnv) return null;
       const url = wizEnv[regionKey];
-      return url ? parseJdbcUrl(url) : null;
+      console.log(`[Oracle-Config] WIZARD URL for region "${regionKey}": ${url ?? "NOT FOUND"}`);
+      if (!url) return null;
+      const parsed = parseJdbcUrl(url);
+      console.log(`[Oracle-Config] WIZARD parsed: user=${parsed.user} connectString=${parsed.connectString}`);
+      return parsed;
     }
     default:
+      console.warn(`[Oracle-Config] Unknown app: "${app}"`);
       return null;
   }
 }

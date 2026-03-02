@@ -40,3 +40,7 @@
 - [x] Oracle PLE-Lookup (11g) entfernt, statische JDBC-Konfiguration direkt genutzt (kein NJS-138 mehr)
 - [x] Sprachumschalter DE/EN als Toggle-Schieberegler implementiert
 - [x] Workflow-Dropdowns durch Custom ColorSelect ersetzt (Farben beim Öffnen sichtbar)
+
+## Diagnose (Phase 5)
+- [x] Detailliertes Logging: DB-Connection-String, SQL-Query, Fehlerdetails (oracle-config, oracle-db, kraken-service)
+- [ ] GitHub Push nach Logging-Erweiterung

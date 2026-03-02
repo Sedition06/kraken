@@ -28,16 +28,15 @@ export interface OracleConnectParams {
 function buildConnectString(raw: string): string {
   if (raw.startsWith("//") || raw.startsWith("(")) return raw;
 
-  const slashIdx = raw.indexOf("/");
-  const colonParts = raw.split(":");
+  const parts = raw.split(":");
 
-  if (colonParts.length === 3) {
-    // host:port:sid
-    const [host, port, sid] = colonParts;
+  if (parts.length === 3) {
+    // host:port:sid  →  //host:port/sid
+    const [host, port, sid] = parts;
     return `//${host}:${port}/${sid}`;
   }
-  if (colonParts.length === 2 && slashIdx > colonParts[0].length) {
-    // host:port/service  (slash after second colon)
+  if (parts.length === 2) {
+    // host:port/service  →  //host:port/service
     return `//${raw}`;
   }
   return raw;
@@ -48,32 +47,43 @@ function buildConnectString(raw: string): string {
  * Pools are reused across requests for the same user@connectString.
  */
 async function getPool(params: OracleConnectParams): Promise<oracledb.Pool> {
-  const key = `${params.user}@${params.connectString}`;
+  const connectString = buildConnectString(params.connectString);
+  const key = `${params.user}@${connectString}`;
+
+  console.log(`[Oracle] getPool: user=${params.user} rawConnectString="${params.connectString}" → easyConnect="${connectString}"`);
 
   const existing = poolCache.get(key);
   if (existing) {
+    console.log(`[Oracle] Reusing existing pool for ${key}`);
     try {
       const conn = await existing.getConnection();
       await conn.close();
       return existing;
-    } catch {
+    } catch (err) {
+      console.warn(`[Oracle] Existing pool for ${key} is dead (${(err as Error).message}), recreating...`);
       try { await existing.close(0); } catch { /* ignore */ }
       poolCache.delete(key);
     }
   }
 
-  const pool = await oracledb.createPool({
-    user: params.user,
-    password: params.password,
-    connectString: buildConnectString(params.connectString),
-    poolMin: 0,
-    poolMax: 4,
-    poolTimeout: 60,
-    queueTimeout: 30_000,
-  });
-
-  poolCache.set(key, pool);
-  return pool;
+  console.log(`[Oracle] Creating new pool for ${key}...`);
+  try {
+    const pool = await oracledb.createPool({
+      user: params.user,
+      password: params.password,
+      connectString,
+      poolMin: 0,
+      poolMax: 4,
+      poolTimeout: 60,
+      queueTimeout: 30_000,
+    });
+    console.log(`[Oracle] Pool created successfully for ${key}`);
+    poolCache.set(key, pool);
+    return pool;
+  } catch (err) {
+    console.error(`[Oracle] Failed to create pool for ${key}: ${(err as Error).message}`);
+    throw err;
+  }
 }
 
 /**
@@ -88,14 +98,21 @@ export async function executeOracleQuery(
 
   try {
     const pool = await getPool(params);
+    console.log(`[Oracle] Getting connection from pool...`);
     connection = await pool.getConnection();
+    console.log(`[Oracle] Executing query (${sql.length} chars)...`);
 
     const result = await connection.execute(sql, [], {
       outFormat: oracledb.OUT_FORMAT_OBJECT,
       maxRows: 1000,
     });
 
+    const rowCount = (result.rows as any[])?.length ?? 0;
+    console.log(`[Oracle] Query returned ${rowCount} row(s).`);
     return (result.rows as Record<string, any>[]) ?? [];
+  } catch (err) {
+    console.error(`[Oracle] Query execution failed: ${(err as Error).message}`);
+    throw err;
   } finally {
     if (connection) {
       try { await connection.close(); } catch { /* ignore */ }
@@ -113,9 +130,12 @@ export async function getDbConnectionParams(
   app: string,
   region: string = "00"
 ): Promise<OracleConnectParams> {
+  console.log(`[Oracle] Resolving connection params: env=${env} app=${app} region=${region}`);
+
   const config: JdbcUrl | null = getFallbackDbConfig(env, app, region);
 
   if (config) {
+    console.log(`[Oracle] Resolved: user=${config.user} connectString=${config.connectString}`);
     return {
       user: config.user,
       password: config.password,
@@ -123,9 +143,9 @@ export async function getDbConnectionParams(
     };
   }
 
-  throw new Error(
-    `No DB connection configured for env=${env}, app=${app}, region=${region}`
-  );
+  const msg = `No DB connection configured for env=${env}, app=${app}, region=${region}`;
+  console.error(`[Oracle] ${msg}`);
+  throw new Error(msg);
 }
 
 /**
