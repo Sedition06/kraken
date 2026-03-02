@@ -24,8 +24,14 @@
 - [x] REST-API Endpunkt /api/kraken für externe API-Zugriffe
 - [x] Frontend: API-Anbindung statt Demo-Modus
 - [x] Vitest Tests für Backend-Logik (26 Tests bestanden)
-- [ ] GitHub Export (nächster Schritt)
+- [x] GitHub Export (gepusht nach Sedition06/kraken)
 
 ## Hinweise
 - Oracle DB erfordert VPN-Zugang (PLE-Umgebungen sind nur intern erreichbar)
 - oracledb npm-Paket wird für die DB-Verbindung benötigt
+
+## Cleanup (Phase 3 - aktuell)
+- [x] OAuth-Pflichtprüfung aus Server entfernen (nur noch Info-Log, kein Error mehr)
+- [x] VITE_ANALYTICS_ENDPOINT und VITE_ANALYTICS_WEBSITE_ID aus index.html entfernt
+- [x] Server startet ohne externe Dienste sauber
+- [ ] GitHub Push nach Cleanup
