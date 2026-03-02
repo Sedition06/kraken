@@ -52,7 +52,7 @@ function parseJdbcUrl(jdbc: string): JdbcUrl {
 
 // MAMAS DB URLs per environment
 const MAMAS_URLS: Record<string, string> = {
-  GIT: "jdbc:oracle:thin:ne4/ne4@mamasgit-pub1.kabeldeutschland.de:1526/MAMASGIT",
+  GIT: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1",
   PNA: "jdbc:oracle:thin:ne4/ne4@qlt2062.kabeldeutschland.de:1526:mamaspna",
   "3.TEST": "jdbc:oracle:thin:ne4/ne4@mamas3t-pub1.kabeldeutschland.de:1525/mamas3t",
   "4.TEST": "jdbc:oracle:thin:ne4/YhtpFcUDXTrwjZF9dUhC@mamasvt4-pub1.kabeldeutschland.de:1525/mamasvt4",
@@ -60,7 +60,7 @@ const MAMAS_URLS: Record<string, string> = {
 
 // ADS DB URLs per environment
 const ADS_URLS: Record<string, string> = {
-  GIT: "jdbc:oracle:thin:ads_read/ads_read@adsgit-pub1.kabeldeutschland.de:1525:adsgit",
+  GIT: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:adsgit1",
   PNA: "jdbc:oracle:thin:ads_read/ads_read@qlt2062.kabeldeutschland.de:1525/ADSPNA",
   "3.TEST": "jdbc:oracle:thin:ads_read/ads_read@ads3t-pub1.kabeldeutschland.de:1525:ads3t",
   "4.TEST": "jdbc:oracle:thin:ads_read/ads_read@adsvt4-pub1.kabeldeutschland.de:1525:adsvt4",
