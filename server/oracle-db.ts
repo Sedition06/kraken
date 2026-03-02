@@ -21,24 +21,41 @@ export interface OracleConnectParams {
 }
 
 /**
- * Convert a raw connect string from the JDBC URL format to an Easy Connect string.
- *   host:port:sid      →  //host:port/sid
- *   host:port/service  →  //host:port/service
+ * Convert a raw connect string from the JDBC URL format to the correct
+ * node-oracledb Thin mode format.
+ *
+ * Oracle distinguishes two connection types:
+ *   host:port:SID       → SID-based (older DBs) → TNS DESCRIPTION with SID
+ *   host:port/SERVICE   → Service Name (newer DBs) → Easy Connect //host:port/SERVICE
+ *
+ * IMPORTANT: node-oracledb Thin mode does NOT support Easy Connect with SID
+ * (//host:port/SID is interpreted as a service name, not a SID).
+ * For SID-based connections the full TNS descriptor must be used.
  */
 function buildConnectString(raw: string): string {
+  // Already in TNS or Easy Connect format
   if (raw.startsWith("//") || raw.startsWith("(")) return raw;
+
+  // host:port/SERVICE_NAME  →  Easy Connect  //host:port/SERVICE_NAME
+  if (raw.includes("/")) {
+    return `//${raw}`;
+  }
 
   const parts = raw.split(":");
 
   if (parts.length === 3) {
-    // host:port:sid  →  //host:port/sid
+    // host:port:SID  →  TNS DESCRIPTION with SID (required for SID-based connections)
     const [host, port, sid] = parts;
-    return `//${host}:${port}/${sid}`;
+    const tns = `(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=${host})(PORT=${port}))(CONNECT_DATA=(SID=${sid})))`;
+    console.log(`[Oracle] SID-format detected → TNS descriptor: ${tns}`);
+    return tns;
   }
+
   if (parts.length === 2) {
-    // host:port/service  →  //host:port/service
+    // host:port  →  Easy Connect (no service name, unusual but handle gracefully)
     return `//${raw}`;
   }
+
   return raw;
 }
 

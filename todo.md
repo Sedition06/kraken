@@ -43,4 +43,8 @@
 
 ## Diagnose (Phase 5)
 - [x] Detailliertes Logging: DB-Connection-String, SQL-Query, Fehlerdetails (oracle-config, oracle-db, kraken-service)
-- [ ] GitHub Push nach Logging-Erweiterung
+- [x] GitHub Push nach Logging-Erweiterung (8f730da)
+
+## Bugfix (Phase 6)
+- [x] Oracle Connect-String: host:port:sid korrekt als TNS-Descriptor übergeben (nicht als //host:port/sid)
+- [ ] GitHub Push nach Bugfix
