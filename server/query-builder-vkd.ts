@@ -95,6 +95,7 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
   }
 
   // Workflow KAI (KAI_WORKFLOW or KAI_WOR_VFW for O2)
+  // Groovy VKD logic: O2 checkbox replaces a_workflow with a_wor_vfw
   if (params.wfKai) {
     if (params.o2) {
       viewConditions.push(`KAI_WOR_VFW = '${params.wfKai}'`);
@@ -334,7 +335,7 @@ function buildFiberQuery(params: VkdSearchParams): string {
   }
 
   const maxRows = params.results || "100";
-  return `Select A_Adresse_ID From NE4.TA_VMBKT_FIBER Where ${conditions.join(" And ")} And Rownum <= ${maxRows}`;
+  return `Select A_Adresse_ID As OBJ_ADRESSE_ID From NE4.TA_VMBKT_FIBER Where ${conditions.join(" And ")} And Rownum <= ${maxRows}`;
 }
 
 /**

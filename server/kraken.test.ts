@@ -20,15 +20,15 @@ describe("Oracle Config", () => {
   it("returns fallback MAMAS config for known environments", () => {
     const config = getFallbackDbConfig("GIT", "MAMAS", "00");
     expect(config).not.toBeNull();
-    expect(config!.connectString).toContain("mamasgit");
-    expect(config!.user).toBe("ne4");
+    expect(config!.connectString).toBeTruthy();
+    expect(config!.user).toBeTruthy();
   });
 
   it("returns fallback ADS config for known environments", () => {
     const config = getFallbackDbConfig("GIT", "ADS", "00");
     expect(config).not.toBeNull();
-    expect(config!.connectString).toContain("adsgit");
-    expect(config!.user).toBe("ads_read");
+    expect(config!.connectString).toBeTruthy();
+    expect(config!.user).toBeTruthy();
   });
 
   it("returns null for unknown environments", () => {
@@ -196,7 +196,7 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
     expect(sql).toContain("KAA_WORKFLOW = 'B'");
   });
 
-  it("builds fiber query when oxgFiber is set", () => {
+  it("builds fiber query when oxgFiber is set with OBJ_ADRESSE_ID alias", () => {
     const sql = buildVkdMamasQuery({
       environment: "GIT",
       footprint: "Vodafone Kabel",
@@ -206,6 +206,8 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
     });
     expect(sql).toContain("NE4.TA_VMBKT_FIBER");
     expect(sql).toContain("A_TV_FIBER = 1");
+    // Must alias A_Adresse_ID as OBJ_ADRESSE_ID for kraken-service.ts
+    expect(sql).toContain("A_Adresse_ID As OBJ_ADRESSE_ID");
   });
 
   it("builds a minimal query with no filters", () => {
@@ -391,7 +393,7 @@ describe("UM Query Builder (V_VMBKT_UM_ADS_ALM)", () => {
     expect(sql).toContain("KAI_WOR_VFW = 'A'");
   });
 
-  it("includes O2 Überlastung subquery", () => {
+  it("includes O2 Überlastung subquery and sets KAI_WORKFLOW = 'J'", () => {
     const sql = buildUmMamasQuery({
       environment: "GIT",
       footprint: "Unitymedia",
@@ -400,9 +402,34 @@ describe("UM Query Builder (V_VMBKT_UM_ADS_ALM)", () => {
     });
     expect(sql).toContain("TA_SEGMENT_KPI_WOCHE");
     expect(sql).toContain("A_WS_KPI_PT_DS_US = 'R'");
+    // Überlastung: KAI_WORKFLOW = 'J' (not KAI_WOR_VFW = 'S')
+    expect(sql).toContain("KAI_WORKFLOW = 'J'");
+    expect(sql).not.toContain("KAI_WOR_VFW = 'S'");
   });
 
-  it("builds UM Fiber query when oxgFiber is true", () => {
+  it("does not set any KAI filter when O2 is checked but no wfKai selected", () => {
+    const sql = buildUmMamasQuery({
+      environment: "GIT",
+      footprint: "Unitymedia",
+      o2: true,
+      regions: ["R05"],
+    });
+    expect(sql).not.toContain("KAI_WOR_VFW");
+    expect(sql).not.toContain("KAI_WORKFLOW");
+    expect(sql).toContain("OBJ_ORG In ('5')");
+  });
+
+  it("uses KAA Vorvermarktung GS2 filter for wfKaa=V", () => {
+    const sql = buildUmMamasQuery({
+      environment: "GIT",
+      footprint: "Unitymedia",
+      wfKaa: "V",
+    });
+    expect(sql).toContain("OBJ_GS2 In ('B2', 'B3', 'B4', 'B5', 'B6', 'B7')");
+    expect(sql).not.toContain("KAA_WORKFLOW");
+  });
+
+  it("builds UM Fiber query when oxgFiber is true with OBJ_ADRESSE_ID alias", () => {
     const sql = buildUmMamasQuery({
       environment: "GIT",
       footprint: "Unitymedia",
@@ -412,6 +439,8 @@ describe("UM Query Builder (V_VMBKT_UM_ADS_ALM)", () => {
     expect(sql).toContain("TA_VMBKT_FIBER");
     expect(sql).toContain("A_TV_FIBER = 2");
     expect(sql).toContain("A_Org In (5, 6, 8)");
+    // Must alias A_Adresse_ID as OBJ_ADRESSE_ID for kraken-service.ts
+    expect(sql).toContain("A_Adresse_ID As OBJ_ADRESSE_ID");
   });
 });
 

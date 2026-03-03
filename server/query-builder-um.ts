@@ -37,8 +37,14 @@ export function buildUmMamasQuery(params: UmSearchParams, addressIdFilter?: numb
   }
 
   // Workflow KAA (KAA_WORKFLOW)
+  // Groovy: A_KV_KABEL_TV: A→'N', B→'J' (mapped to KAA_WORKFLOW in new view)
   if (params.wfKaa) {
-    viewConditions.push(`KAA_WORKFLOW = '${params.wfKaa}'`);
+    if (params.wfKaa === 'V') {
+      // Vorvermarktung KAA → GS2 filter (AF StephanK 23.12.2022)
+      viewConditions.push(`OBJ_GS2 In ('B2', 'B3', 'B4', 'B5', 'B6', 'B7')`);
+    } else {
+      viewConditions.push(`KAA_WORKFLOW = '${params.wfKaa}'`);
+    }
   }
 
   // Workflow KAD (KAD_WORKFLOW)
@@ -47,12 +53,19 @@ export function buildUmMamasQuery(params: UmSearchParams, addressIdFilter?: numb
   }
 
   // Workflow KAI (KAI_WORKFLOW or KAI_WOR_VFW for O2)
-  if (params.wfKai) {
-    if (params.o2) {
+  // Groovy logic from AdsUyService.mapAttributes:
+  //   O2 checked + workflow != 'S': KAI_WOR_VFW = workflow
+  //   O2 checked + workflow == 'S': KAI_WORKFLOW = 'J' (Überlastung → Internet=Ja)
+  //   O2 not checked: KAI_WORKFLOW: A→'N', B→'J'
+  if (params.o2) {
+    if (params.wfKai && params.wfKai !== 'S') {
       viewConditions.push(`KAI_WOR_VFW = '${params.wfKai}'`);
-    } else {
-      viewConditions.push(`KAI_WORKFLOW = '${params.wfKai}'`);
+    } else if (params.wfKai === 'S') {
+      // Überlastung: KAI_WORKFLOW = 'J' (Internet verfügbar)
+      viewConditions.push(`KAI_WORKFLOW = 'J'`);
     }
+  } else if (params.wfKai) {
+    viewConditions.push(`KAI_WORKFLOW = '${params.wfKai}'`);
   }
 
   // SelfInstall (OBJ_SEL_VERFUEGBAR)
@@ -182,7 +195,7 @@ function buildUmFiberQuery(params: UmSearchParams): string {
   }
 
   const maxRows = params.results || "100";
-  return `Select A_Adresse_ID From NE4.TA_VMBKT_FIBER Where ${conditions.join(" And ")} And Rownum <= ${maxRows}`;
+  return `Select A_Adresse_ID As OBJ_ADRESSE_ID From NE4.TA_VMBKT_FIBER Where ${conditions.join(" And ")} And Rownum <= ${maxRows}`;
 }
 
 /**
