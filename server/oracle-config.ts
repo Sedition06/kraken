@@ -52,45 +52,45 @@ function parseJdbcUrl(jdbc: string): JdbcUrl {
 
 // MAMAS DB URLs per environment
 const MAMAS_URLS: Record<string, string> = {
-  GIT: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1",
-  PNA: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt2034.kabeldeutschland.de:1521:mamaspna",
-  "3.TEST": "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@vltn237.kabeldeutschland.de:1521:mamas3t",
+  GIT: "jdbc:oracle:thin:ne4/ne4@mamasgit-pub1.kabeldeutschland.de:1526/MAMASGIT",
+  PNA: "jdbc:oracle:thin:ne4/ne4@qlt2062.kabeldeutschland.de:1526:mamaspna",
+  "3.TEST": "jdbc:oracle:thin:ne4/ne4@mamas3t-pub1.kabeldeutschland.de:1525/mamas3t",
   "4.TEST": "jdbc:oracle:thin:ne4/YhtpFcUDXTrwjZF9dUhC@mamasvt4-pub1.kabeldeutschland.de:1525/mamasvt4",
 };
 
 // ADS DB URLs per environment
 const ADS_URLS: Record<string, string> = {
-  GIT: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:adsgit1",
-  PNA: "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt2034.kabeldeutschland.de:1521:adspna",
-  "3.TEST": "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@vltn840.kabeldeutschland.de:1521:ads3t",
-  "4.TEST": "jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@vltn070.kabeldeutschland.de:1521:adsvt4",
+  GIT: "jdbc:oracle:thin:ads_read/ads_read@adsgit-pub1.kabeldeutschland.de:1525:adsgit",
+  PNA: "jdbc:oracle:thin:ads_read/ads_read@qlt2062.kabeldeutschland.de:1525/ADSPNA",
+  "3.TEST": "jdbc:oracle:thin:ads_read/ads_read@ads3t-pub1.kabeldeutschland.de:1525:ads3t",
+  "4.TEST": "jdbc:oracle:thin:ads_read/ads_read@adsvt4-pub1.kabeldeutschland.de:1525:adsvt4",
 };
 
 // Wizard DB URLs per environment and region
 const WIZARD_URLS: Record<string, Record<string, string>> = {
   GIT: {
-    "01": "jdbc:oracle:thin:prod01_read/Pr0D0X_RD_PW_r01_gIT@vltn397.kabeldeutschland.de:1521:wiz1git",
-    "02": "jdbc:oracle:thin:prod02_read/Pr0D0X_RD_PW_r02_gIT@vltn397.kabeldeutschland.de:1521:wiz1git",
-    "04": "jdbc:oracle:thin:prod04_read/Pr0D0X_RD_PW_r04_gIT@vltn397.kabeldeutschland.de:1521:wiz1git",
-    "03": "jdbc:oracle:thin:prod03_read/Pr0D0X_RD_PW_r03_gIT@vltn421.kabeldeutschland.de:1521:wiz2git",
-    "07": "jdbc:oracle:thin:prod07_read/Pr0D0X_RD_PW_r07_gIT@vltn421.kabeldeutschland.de:1521:wiz2git",
-    "09": "jdbc:oracle:thin:prod09_read/Pr0D0X_RD_PW_r09_gIT@vltn421.kabeldeutschland.de:1521:wiz2git",
+    "01": "jdbc:oracle:thin:prod01_read/prod01_read@wizprod1git-pub1.kabeldeutschland.de:1521:wizprod1",
+    "02": "jdbc:oracle:thin:prod02_read/prod02_read@wizprod1git-pub1.kabeldeutschland.de:1521:wizprod1",
+    "04": "jdbc:oracle:thin:prod04_read/prod04_read@wizprod1git-pub1.kabeldeutschland.de:1521:wizprod1",
+    "03": "jdbc:oracle:thin:prod03_read/prod03_read@wizprod2git-pub1.kabeldeutschland.de:1524:wizprod2",
+    "07": "jdbc:oracle:thin:prod07_read/prod07_read@wizprod2git-pub1.kabeldeutschland.de:1524:wizprod2",
+    "09": "jdbc:oracle:thin:prod09_read/prod09_read@wizprod2git-pub1.kabeldeutschland.de:1524:wizprod2",
   },
   PNA: {
-    "01": "jdbc:oracle:thin:prod01_read/Pr0D0X_RD_PW_r01_pNA@vltn558.kabeldeutschland.de:1521:wiz1pna",
-    "02": "jdbc:oracle:thin:prod02_read/Pr0D0X_RD_PW_r02_pNA@vltn558.kabeldeutschland.de:1521:wiz1pna",
-    "04": "jdbc:oracle:thin:prod04_read/Pr0D0X_RD_PW_r04_pNA@vltn558.kabeldeutschland.de:1521:wiz1pna",
-    "03": "jdbc:oracle:thin:prod03_read/Pr0D0X_RD_PW_r03_pNA@vltn565.kabeldeutschland.de:1521:wiz2pna",
-    "07": "jdbc:oracle:thin:prod07_read/Pr0D0X_RD_PW_r07_pNA@vltn565.kabeldeutschland.de:1521:wiz2pna",
-    "09": "jdbc:oracle:thin:prod09_read/Pr0D0X_RD_PW_r09_pNA@vltn565.kabeldeutschland.de:1521:wiz2pna",
+    "01": "jdbc:oracle:thin:prod01_read/prod01_read@wizprod1pna-pub1.kabeldeutschland.de:1521:wizprod1",
+    "02": "jdbc:oracle:thin:prod02_read/prod02_read@wizprod1pna-pub1.kabeldeutschland.de:1521:wizprod1",
+    "04": "jdbc:oracle:thin:prod04_read/prod04_read@wizprod1pna-pub1.kabeldeutschland.de:1521:wizprod1",
+    "03": "jdbc:oracle:thin:prod03_read/prod03_read@wizprod2pna-pub1.kabeldeutschland.de:1524:wizprod2",
+    "07": "jdbc:oracle:thin:prod07_read/prod07_read@wizprod2pna-pub1.kabeldeutschland.de:1524:wizprod2",
+    "09": "jdbc:oracle:thin:prod09_read/prod09_read@wizprod2pna-pub1.kabeldeutschland.de:1524:wizprod2",
   },
   "3.TEST": {
-    "01": "jdbc:oracle:thin:prod01_read/Pr0D0X_RD_PW_r01_3te@vltn454.kabeldeutschland.de:1521:wiz13t",
-    "02": "jdbc:oracle:thin:prod02_read/Pr0D0X_RD_PW_r02_3te@vltn454.kabeldeutschland.de:1521:wiz13t",
-    "04": "jdbc:oracle:thin:prod04_read/Pr0D0X_RD_PW_r04_3te@vltn454.kabeldeutschland.de:1521:wiz13t",
-    "03": "jdbc:oracle:thin:prod03_read/Pr0D0X_RD_PW_r03_3te @vltn498.kabeldeutschland.de:1521:wiz23t",
-    "07": "jdbc:oracle:thin:prod03_read/Pr0D0X_RD_PW_r07_3te@vltn498.kabeldeutschland.de:1521:wiz23t",
-    "09": "jdbc:oracle:thin:prod09_read/Pr0D0X_RD_PW_r09_3te@vltn498.kabeldeutschland.de:1521:wiz23t",
+    "01": "jdbc:oracle:thin:prod01_read/prod01_read@wizprod13t-pub1.kabeldeutschland.de:1521:wizprod1",
+    "02": "jdbc:oracle:thin:prod02_read/prod02_read@wizprod13t-pub1.kabeldeutschland.de:1521:wizprod1",
+    "04": "jdbc:oracle:thin:prod04_read/prod04_read@wizprod13t-pub1.kabeldeutschland.de:1521:wizprod1",
+    "03": "jdbc:oracle:thin:prod03_read/prod03_read@wizprod23t-pub1.kabeldeutschland.de:1524:wizprod2",
+    "07": "jdbc:oracle:thin:prod03_read/prod03_read@wizprod23t-pub1.kabeldeutschland.de:1524:wizprod2",
+    "09": "jdbc:oracle:thin:prod09_read/prod09_read@wizprod23t-pub1.kabeldeutschland.de:1524:wizprod2",
   },
   "4.TEST": {
     "01": "jdbc:oracle:thin:prod01_read/prod01_read@wizprod1vt4-pub1.kabeldeutschland.de:1521:wizprod1",

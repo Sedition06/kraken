@@ -57,4 +57,8 @@
 - [x] Wizard-DB eliminiert → NE4.V_WIZ_CUSTOMER_CONTRACTS + NE4.V_VERMARKTBARKEIT_OBJEKT
 - [x] PLE-DB-Logging erweitert (Aufruf und zurückgelieferte Strings sichtbar)
 - [x] Tests aktualisiert (42 Tests bestanden)
-- [ ] GitHub Push
+- [x] GitHub Push (e68eb0d)
+
+## Bugfix Phase 8
+- [x] A_ADRESSE_ID → OBJ_ADRESSE_ID in Views (V_VMBKT_ADS_ALM, V_VMBKT_UM_ADS_ALM)
+- [x] Tests bestanden (42) + GitHub Push

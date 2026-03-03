@@ -150,13 +150,13 @@ export function buildUmMamasQuery(params: UmSearchParams, addressIdFilter?: numb
 
   // ── Address ID filter (from PLZ pre-search) ──
   if (addressIdFilter && addressIdFilter.length > 0) {
-    viewConditions.push(`A_ADRESSE_ID In (${addressIdFilter.join(", ")})`);
+    viewConditions.push(`OBJ_ADRESSE_ID In (${addressIdFilter.join(", ")})`);
   }
 
   // ── Assemble final SQL ──
   const allConditions = [...viewConditions, ...subqueryParts];
 
-  const selectPart = `Select /*+ parallel(${PARALLEL_THREADS}) */\n        A_ADRESSE_ID From NE4.V_VMBKT_UM_ADS_ALM\n  Where `;
+  const selectPart = `Select /*+ parallel(${PARALLEL_THREADS}) */\n        OBJ_ADRESSE_ID From NE4.V_VMBKT_UM_ADS_ALM\n  Where `;
 
   if (allConditions.length > 0) {
     return selectPart + allConditions.join(" And ") + ` And Rownum <= ${maxRows}`;

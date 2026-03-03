@@ -192,7 +192,7 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
       footprint: "Vodafone Kabel",
       wfKaa: "B",
     }, [100, 200, 300]);
-    expect(sql).toContain("A_ADRESSE_ID In (100, 200, 300)");
+    expect(sql).toContain("OBJ_ADRESSE_ID In (100, 200, 300)");
     expect(sql).toContain("KAA_WORKFLOW = 'B'");
   });
 
@@ -378,7 +378,7 @@ describe("UM Query Builder (V_VMBKT_UM_ADS_ALM)", () => {
       footprint: "Unitymedia",
       wfKaa: "B",
     }, [100, 200]);
-    expect(sql).toContain("A_ADRESSE_ID In (100, 200)");
+    expect(sql).toContain("OBJ_ADRESSE_ID In (100, 200)");
   });
 
   it("uses KAI_WOR_VFW when O2 is enabled", () => {

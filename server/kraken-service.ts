@@ -143,7 +143,7 @@ async function searchVkd(params: VkdSearchParams): Promise<SearchResponse> {
     }
 
     plzAddressIds = plzRows.map(r => r.A_ADRESSE_ID as number);
-    console.log(`[KRAKEN] [VKD] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS`);
+    console.log(`[KRAKEN] [VKD] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS (using ADS.A_ADRESSE_ID)`);
   }
 
   // ── Step 2: MAMAS query against NE4.V_VMBKT_ADS_ALM ──
@@ -162,7 +162,7 @@ async function searchVkd(params: VkdSearchParams): Promise<SearchResponse> {
     return { results: [], sqlQuery: allSql, count: 0 };
   }
 
-  const addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
+  const addressIds = mamasRows.map(r => r.OBJ_ADRESSE_ID as number);
 
   // ── Step 3: ADS query for full address details ──
   console.log(`[KRAKEN] [VKD] Resolving ADS connection for env=${env}...`);
@@ -234,7 +234,7 @@ async function searchUm(params: UmSearchParams): Promise<SearchResponse> {
     }
 
     plzAddressIds = plzRows.map(r => r.A_ADRESSE_ID as number);
-    console.log(`[KRAKEN] [UM] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS`);
+    console.log(`[KRAKEN] [UM] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS (using ADS.A_ADRESSE_ID)`);
   }
 
   // ── Step 2: MAMAS query against NE4.V_VMBKT_UM_ADS_ALM ──
@@ -253,7 +253,7 @@ async function searchUm(params: UmSearchParams): Promise<SearchResponse> {
     return { results: [], sqlQuery: allSql, count: 0 };
   }
 
-  const addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
+  const addressIds = mamasRows.map(r => r.OBJ_ADRESSE_ID as number);
 
   // ── Step 3: ADS query for full address details ──
   console.log(`[KRAKEN] [UM] Resolving ADS connection for env=${env}...`);
