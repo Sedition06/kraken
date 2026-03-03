@@ -47,4 +47,14 @@
 
 ## Bugfix (Phase 6)
 - [x] Oracle Connect-String: host:port:sid korrekt als TNS-Descriptor übergeben (nicht als //host:port/sid)
-- [ ] GitHub Push nach Bugfix
+- [x] GitHub Push nach Bugfix (ef801e1)
+
+## Umbau Phase 7
+- [x] PLE-DB-Lookup für Connection-Strings reaktivieren (Thick Mode + Fallback)
+- [x] Query-Builder VKD: View NE4.V_VMBKT_ADS_ALM statt Tabellen verwenden
+- [x] Query-Builder UM: View NE4.V_VMBKT_UM_ADS_ALM statt Tabellen verwenden
+- [x] PLZ-Suche über indexiertes Feld A_V_PLZ_SUCH in ads.ta_adresse
+- [x] Wizard-DB eliminiert → NE4.V_WIZ_CUSTOMER_CONTRACTS + NE4.V_VERMARKTBARKEIT_OBJEKT
+- [x] PLE-DB-Logging erweitert (Aufruf und zurückgelieferte Strings sichtbar)
+- [x] Tests aktualisiert (42 Tests bestanden)
+- [ ] GitHub Push

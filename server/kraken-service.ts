@@ -2,17 +2,27 @@
  * Kraken Search Service
  *
  * Orchestrates the search flow:
- * 1. Build SQL from form parameters
- * 2. Query MAMAS for A_Adresse_IDs
- * 3. Query ADS for full address details
- * 4. Return results + SQL for debugging
  *
- * Logging: All steps are logged with [KRAKEN] prefix so they are visible
- * in the server console. Sensitive passwords are masked.
+ * VKD flow:
+ *   1. If PLZ set → query ADS.TA_ADRESSE with A_V_PLZ_SUCH (indexed!) for IDs
+ *   2. Build MAMAS query against NE4.V_VMBKT_ADS_ALM (+ optional subqueries)
+ *      - If PLZ IDs exist → pass them as filter to the MAMAS query
+ *      - Contract data now comes from NE4.V_WIZ_CUSTOMER_CONTRACTS (no Wizard-DB!)
+ *   3. Query ADS for full address details
+ *
+ * UM flow:
+ *   1. If PLZ set → query ADS.TA_ADRESSE with A_V_PLZ_SUCH (indexed!) for IDs
+ *   2. Build MAMAS query against NE4.V_VMBKT_UM_ADS_ALM (+ optional subqueries)
+ *   3. Query ADS for full address details
+ *
+ * PLZ-only flow (no other MAMAS filters):
+ *   → Query ADS directly for results (no MAMAS round-trip needed)
+ *
+ * Logging: All steps are logged with [KRAKEN] prefix.
  */
 import { getDbConnectionParams, executeOracleQuery, type OracleConnectParams } from "./oracle-db";
-import { buildVkdMamasQuery, buildAdsQuery, buildWizardContractQuery, type VkdSearchParams } from "./query-builder-vkd";
-import { buildUmMamasQuery, type UmSearchParams } from "./query-builder-um";
+import { buildVkdMamasQuery, buildAdsQuery, buildPlzSearchQuery, hasMamasFilters, type VkdSearchParams } from "./query-builder-vkd";
+import { buildUmMamasQuery, hasUmMamasFilters, type UmSearchParams } from "./query-builder-um";
 
 export interface SearchResult {
   OBJEKT_ID: string;
@@ -35,8 +45,9 @@ function maskParams(p: OracleConnectParams): string {
 
 /** Log a SQL query, truncated for readability */
 function logSql(label: string, sql: string): void {
-  const preview = sql.replace(/\s+/g, " ").trim().substring(0, 400);
-  console.log(`[KRAKEN] ${label} SQL (first 400 chars):\n  ${preview}${sql.length > 400 ? "..." : ""}`);
+  const oneLine = sql.replace(/\s+/g, " ").trim();
+  const preview = oneLine.substring(0, 500);
+  console.log(`[KRAKEN] ${label} SQL (${sql.length} chars):\n  ${preview}${sql.length > 500 ? "..." : ""}`);
 }
 
 /**
@@ -46,7 +57,16 @@ export async function searchAddresses(params: UmSearchParams): Promise<SearchRes
   const isUnitymedia = params.footprint === "Unitymedia";
 
   console.log(`\n[KRAKEN] ===== Search started =====`);
-  console.log(`[KRAKEN] Params: env=${params.environment} footprint=${params.footprint} regions=${JSON.stringify(params.regions)} results=${params.results}`);
+  console.log(`[KRAKEN] Params: env=${params.environment} footprint=${params.footprint}`);
+  console.log(`[KRAKEN]   regions=${JSON.stringify(params.regions)} plz=${params.plz || "(none)"} results=${params.results}`);
+  console.log(`[KRAKEN]   wfKaa=${params.wfKaa || "-"} wfKad=${params.wfKad || "-"} wfKai=${params.wfKai || "-"} o2=${params.o2 || false}`);
+  console.log(`[KRAKEN]   selfinstall=${params.selfinstall || "-"} docsis=${params.docsis || "-"} abk=${params.abk || "-"} fttb=${params.fttb || "-"}`);
+  console.log(`[KRAKEN]   tvKaa=${params.tvKaa || "-"} tvKad=${params.tvKad || "-"} tvKai=${params.tvKai || "-"} uepZustand=${params.uepZustand || "-"}`);
+  console.log(`[KRAKEN]   vertragsnr=${params.vertragsnummer || "-"} kundennr=${params.kundennummer || "-"} vertragscodes=${JSON.stringify(params.vertragscodes) || "-"}`);
+  console.log(`[KRAKEN]   ccb1=${params.gestattungsvertrag || "-"} ccb2=${params.anschlussvertrag || "-"} salessegment=${params.salessegment || "-"}`);
+  if (isUnitymedia) {
+    console.log(`[KRAKEN]   ne4Status=${(params as UmSearchParams).ne4Status || "-"} gs2Element=${params.gs2Element || "-"}`);
+  }
 
   try {
     const response = isUnitymedia
@@ -71,78 +91,80 @@ export async function searchAddresses(params: UmSearchParams): Promise<SearchRes
   }
 }
 
-/**
- * VKD (Vodafone Kabel) search flow.
- */
+// ─── VKD Search ───
+
 async function searchVkd(params: VkdSearchParams): Promise<SearchResponse> {
   const env = params.environment;
   let allSql = "";
-  let addressIds: number[] = [];
+  let plzAddressIds: number[] | undefined;
 
+  // ── Step 1: PLZ pre-search (if PLZ is set) ──
+  if (params.plz && params.plz.length === 5) {
+    console.log(`[KRAKEN] [VKD] PLZ search: ${params.plz}`);
+
+    // Check if we have any MAMAS filters beyond PLZ
+    const needsMamas = hasMamasFilters(params);
+    console.log(`[KRAKEN] [VKD] Has MAMAS filters beyond PLZ: ${needsMamas}`);
+
+    if (!needsMamas) {
+      // PLZ only → query ADS directly for results (no MAMAS round-trip)
+      console.log(`[KRAKEN] [VKD] PLZ-only search (no MAMAS filters) → querying ADS directly`);
+      const adsParams = await getDbConnectionParams(env, "ADS", "00");
+      console.log(`[KRAKEN] [VKD] ADS connection: ${maskParams(adsParams)}`);
+
+      const plzSql = buildPlzSearchQuery(params.plz, false, params.results || "100");
+      allSql = plzSql;
+      logSql("ADS PLZ-only", plzSql);
+
+      const adsRows = await executeOracleQuery(adsParams, plzSql);
+      console.log(`[KRAKEN] [VKD] ADS PLZ-only returned ${adsRows?.length ?? 0} row(s).`);
+
+      return {
+        results: mapAdsRows(adsRows),
+        sqlQuery: allSql,
+        count: adsRows?.length ?? 0,
+      };
+    }
+
+    // PLZ + MAMAS filters → get IDs from ADS first, then filter in MAMAS
+    console.log(`[KRAKEN] [VKD] PLZ + MAMAS filters → pre-fetching IDs from ADS`);
+    const adsParams = await getDbConnectionParams(env, "ADS", "00");
+    console.log(`[KRAKEN] [VKD] ADS connection: ${maskParams(adsParams)}`);
+
+    const plzIdSql = buildPlzSearchQuery(params.plz, true, "10000");
+    allSql = plzIdSql;
+    logSql("ADS PLZ ID-fetch", plzIdSql);
+
+    const plzRows = await executeOracleQuery(adsParams, plzIdSql);
+    console.log(`[KRAKEN] [VKD] ADS PLZ returned ${plzRows?.length ?? 0} address ID(s).`);
+
+    if (!plzRows || plzRows.length === 0) {
+      return { results: [], sqlQuery: allSql, count: 0 };
+    }
+
+    plzAddressIds = plzRows.map(r => r.A_ADRESSE_ID as number);
+    console.log(`[KRAKEN] [VKD] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS`);
+  }
+
+  // ── Step 2: MAMAS query against NE4.V_VMBKT_ADS_ALM ──
   console.log(`[KRAKEN] [VKD] Resolving MAMAS connection for env=${env}...`);
   const mamasParams = await getDbConnectionParams(env, "MAMAS", "00");
   console.log(`[KRAKEN] [VKD] MAMAS connection: ${maskParams(mamasParams)}`);
 
-  // Step 1: Check if contract codes are selected → Wizard query first
-  if (params.vertragscodes && params.vertragscodes.length > 0) {
-    const region = (params.regions && params.regions.length > 0) ? params.regions[0] : "R01";
-    const regionNum = region.replace("R", "").padStart(2, "0");
+  const mamasSql = buildVkdMamasQuery(params, plzAddressIds);
+  allSql += (allSql ? "\n" : "") + mamasSql;
+  logSql("MAMAS (V_VMBKT_ADS_ALM)", mamasSql);
 
-    console.log(`[KRAKEN] [VKD] Contract codes selected – resolving WIZARD connection for env=${env} region=${regionNum}...`);
-    const wizParams = await getDbConnectionParams(env, "WIZARD", regionNum);
-    console.log(`[KRAKEN] [VKD] WIZARD connection: ${maskParams(wizParams)}`);
+  const mamasRows = await executeOracleQuery(mamasParams, mamasSql);
+  console.log(`[KRAKEN] [VKD] MAMAS returned ${mamasRows?.length ?? 0} row(s).`);
 
-    const { indirect, direct } = buildWizardContractQuery(params.vertragscodes);
-    logSql("WIZARD indirect", indirect);
-
-    let wizRows = await executeOracleQuery(wizParams, indirect);
-    allSql = indirect;
-
-    if (!wizRows || wizRows.length === 0) {
-      console.log(`[KRAKEN] [VKD] WIZARD indirect returned 0 rows – trying direct query...`);
-      logSql("WIZARD direct", direct);
-      wizRows = await executeOracleQuery(wizParams, direct);
-      allSql = direct;
-    }
-
-    if (!wizRows || wizRows.length === 0) {
-      console.log(`[KRAKEN] [VKD] WIZARD returned 0 rows – no results.`);
-      return { results: [], sqlQuery: allSql, count: 0 };
-    }
-
-    console.log(`[KRAKEN] [VKD] WIZARD returned ${wizRows.length} address ID(s).`);
-    addressIds = wizRows.map(r => r.A_ADRESSE_ID as number);
-
-    // Query MAMAS with address ID filter
-    let mamasSql = buildVkdMamasQuery(params);
-    const idList = addressIds.join(", ");
-    mamasSql = mamasSql.replace("Rownum", `A_ADRESSE_ID In (${idList}) And Rownum`);
-    logSql("MAMAS (with Wizard filter)", mamasSql);
-
-    const mamasRows = await executeOracleQuery(mamasParams, mamasSql);
-    allSql += "\n" + mamasSql;
-    console.log(`[KRAKEN] [VKD] MAMAS (filtered) returned ${mamasRows?.length ?? 0} row(s).`);
-
-    if (!mamasRows || mamasRows.length === 0) {
-      return { results: [], sqlQuery: allSql, count: 0 };
-    }
-    addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
-  } else {
-    // Standard MAMAS query (no contract codes)
-    const mamasSql = buildVkdMamasQuery(params);
-    allSql = mamasSql;
-    logSql("MAMAS", mamasSql);
-
-    const mamasRows = await executeOracleQuery(mamasParams, mamasSql);
-    console.log(`[KRAKEN] [VKD] MAMAS returned ${mamasRows?.length ?? 0} row(s).`);
-
-    if (!mamasRows || mamasRows.length === 0) {
-      return { results: [], sqlQuery: allSql, count: 0 };
-    }
-    addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
+  if (!mamasRows || mamasRows.length === 0) {
+    return { results: [], sqlQuery: allSql, count: 0 };
   }
 
-  // Step 2: Query ADS for full address details
+  const addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
+
+  // ── Step 3: ADS query for full address details ──
   console.log(`[KRAKEN] [VKD] Resolving ADS connection for env=${env}...`);
   const adsParams = await getDbConnectionParams(env, "ADS", "00");
   console.log(`[KRAKEN] [VKD] ADS connection: ${maskParams(adsParams)}`);
@@ -154,30 +176,75 @@ async function searchVkd(params: VkdSearchParams): Promise<SearchResponse> {
   const adsRows = await executeOracleQuery(adsParams, adsSql);
   console.log(`[KRAKEN] [VKD] ADS returned ${adsRows?.length ?? 0} row(s).`);
 
-  const results: SearchResult[] = (adsRows || []).map(row => ({
-    OBJEKT_ID: String(row.OBJEKT_ID || ""),
-    UM_ADRESSE_ID: row.UM_ADRESSE_ID ? String(row.UM_ADRESSE_ID) : undefined,
-    ADRESSE: String(row.ADRESSE || ""),
-    ONKZ: row.ONKZ ? String(row.ONKZ) : undefined,
-  }));
-
-  return { results, sqlQuery: allSql, count: results.length };
+  return {
+    results: mapAdsRows(adsRows),
+    sqlQuery: allSql,
+    count: adsRows?.length ?? 0,
+  };
 }
 
-/**
- * UM (Unitymedia) search flow.
- */
+// ─── UM Search ───
+
 async function searchUm(params: UmSearchParams): Promise<SearchResponse> {
   const env = params.environment;
   let allSql = "";
+  let plzAddressIds: number[] | undefined;
 
+  // ── Step 1: PLZ pre-search (if PLZ is set) ──
+  if (params.plz && params.plz.length === 5) {
+    console.log(`[KRAKEN] [UM] PLZ search: ${params.plz}`);
+
+    const needsMamas = hasUmMamasFilters(params);
+    console.log(`[KRAKEN] [UM] Has MAMAS filters beyond PLZ: ${needsMamas}`);
+
+    if (!needsMamas) {
+      // PLZ only → query ADS directly
+      console.log(`[KRAKEN] [UM] PLZ-only search → querying ADS directly`);
+      const adsParams = await getDbConnectionParams(env, "ADS", "00");
+      console.log(`[KRAKEN] [UM] ADS connection: ${maskParams(adsParams)}`);
+
+      const plzSql = buildPlzSearchQuery(params.plz, false, params.results || "100");
+      allSql = plzSql;
+      logSql("ADS PLZ-only (UM)", plzSql);
+
+      const adsRows = await executeOracleQuery(adsParams, plzSql);
+      console.log(`[KRAKEN] [UM] ADS PLZ-only returned ${adsRows?.length ?? 0} row(s).`);
+
+      return {
+        results: mapAdsRows(adsRows),
+        sqlQuery: allSql,
+        count: adsRows?.length ?? 0,
+      };
+    }
+
+    // PLZ + MAMAS filters → get IDs from ADS first
+    console.log(`[KRAKEN] [UM] PLZ + MAMAS filters → pre-fetching IDs from ADS`);
+    const adsParams = await getDbConnectionParams(env, "ADS", "00");
+    console.log(`[KRAKEN] [UM] ADS connection: ${maskParams(adsParams)}`);
+
+    const plzIdSql = buildPlzSearchQuery(params.plz, true, "10000");
+    allSql = plzIdSql;
+    logSql("ADS PLZ ID-fetch (UM)", plzIdSql);
+
+    const plzRows = await executeOracleQuery(adsParams, plzIdSql);
+    console.log(`[KRAKEN] [UM] ADS PLZ returned ${plzRows?.length ?? 0} address ID(s).`);
+
+    if (!plzRows || plzRows.length === 0) {
+      return { results: [], sqlQuery: allSql, count: 0 };
+    }
+
+    plzAddressIds = plzRows.map(r => r.A_ADRESSE_ID as number);
+    console.log(`[KRAKEN] [UM] PLZ pre-filter: ${plzAddressIds.length} IDs to pass to MAMAS`);
+  }
+
+  // ── Step 2: MAMAS query against NE4.V_VMBKT_UM_ADS_ALM ──
   console.log(`[KRAKEN] [UM] Resolving MAMAS connection for env=${env}...`);
   const mamasParams = await getDbConnectionParams(env, "MAMAS", "00");
   console.log(`[KRAKEN] [UM] MAMAS connection: ${maskParams(mamasParams)}`);
 
-  const mamasSql = buildUmMamasQuery(params);
-  allSql = mamasSql;
-  logSql("MAMAS (UM)", mamasSql);
+  const mamasSql = buildUmMamasQuery(params, plzAddressIds);
+  allSql += (allSql ? "\n" : "") + mamasSql;
+  logSql("MAMAS (V_VMBKT_UM_ADS_ALM)", mamasSql);
 
   const mamasRows = await executeOracleQuery(mamasParams, mamasSql);
   console.log(`[KRAKEN] [UM] MAMAS returned ${mamasRows?.length ?? 0} row(s).`);
@@ -188,6 +255,7 @@ async function searchUm(params: UmSearchParams): Promise<SearchResponse> {
 
   const addressIds = mamasRows.map(r => r.A_ADRESSE_ID as number);
 
+  // ── Step 3: ADS query for full address details ──
   console.log(`[KRAKEN] [UM] Resolving ADS connection for env=${env}...`);
   const adsParams = await getDbConnectionParams(env, "ADS", "00");
   console.log(`[KRAKEN] [UM] ADS connection: ${maskParams(adsParams)}`);
@@ -199,12 +267,20 @@ async function searchUm(params: UmSearchParams): Promise<SearchResponse> {
   const adsRows = await executeOracleQuery(adsParams, adsSql);
   console.log(`[KRAKEN] [UM] ADS returned ${adsRows?.length ?? 0} row(s).`);
 
-  const results: SearchResult[] = (adsRows || []).map(row => ({
+  return {
+    results: mapAdsRows(adsRows),
+    sqlQuery: allSql,
+    count: adsRows?.length ?? 0,
+  };
+}
+
+// ─── Helpers ───
+
+function mapAdsRows(rows: Record<string, any>[] | undefined): SearchResult[] {
+  return (rows || []).map(row => ({
     OBJEKT_ID: String(row.OBJEKT_ID || ""),
     UM_ADRESSE_ID: row.UM_ADRESSE_ID ? String(row.UM_ADRESSE_ID) : undefined,
     ADRESSE: String(row.ADRESSE || ""),
     ONKZ: row.ONKZ ? String(row.ONKZ) : undefined,
   }));
-
-  return { results, sqlQuery: allSql, count: results.length };
 }
