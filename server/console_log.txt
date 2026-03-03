@@ -1,12 +1,13 @@
 [KRAKEN] ===== Search started =====
-[KRAKEN] Params: env=GIT footprint=Vodafone Kabel
-[KRAKEN]   regions=["R01","R02","R03","R04","R07","R09"] plz=(none) results=10
+[KRAKEN] Params: env=GIT footprint=Unitymedia
+[KRAKEN]   regions=["R05","R06","R08"] plz=(none) results=10
 [KRAKEN]   wfKaa=- wfKad=- wfKai=- o2=false
-[KRAKEN]   selfinstall=J docsis=- abk=- fttb=C
-[KRAKEN]   tvKaa=- tvKad=- tvKai=- uepZustand=7
+[KRAKEN]   selfinstall=- docsis=- abk=- fttb=-
+[KRAKEN]   tvKaa=- tvKad=- tvKai=- uepZustand=-
 [KRAKEN]   vertragsnr=- kundennr=- vertragscodes=[]
 [KRAKEN]   ccb1=- ccb2=- salessegment=-
-[KRAKEN] [VKD] Resolving MAMAS connection for env=GIT...
+[KRAKEN]   ne4Status=- gs2Element=-
+[KRAKEN] [UM] Resolving MAMAS connection for env=GIT...
 [Oracle] Resolving connection: env=GIT app=MAMAS region=00
 [Oracle-PLE] Skipping PLE lookup (Thick Mode not available)
 [Oracle] Using static fallback for env=GIT app=MAMAS region=00
@@ -14,23 +15,42 @@
 [Oracle-Config] MAMAS URL for key "GIT": jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1
 [Oracle-Config] MAMAS parsed: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1
 [Oracle] ✓ Fallback resolved: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1
-[KRAKEN] [VKD] MAMAS connection: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1
-[KRAKEN] MAMAS (V_VMBKT_ADS_ALM) SQL (296 chars):
-  Select /*+ parallel(30) */ OBJ_ADRESSE_ID From NE4.V_VMBKT_ADS_ALM Where OBJ_REGION In ('R01', 'R02', 'R03', 'R04', 'R07', 'R09') And SEL_TV = 'J' And OBJ_UEP_ZUSTAND = '7' And A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_OBJEKT Where A_FIBER_COAX_FLAG = 'C') And Rownum <= 10
+[KRAKEN] [UM] MAMAS connection: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1
+[KRAKEN] MAMAS (V_VMBKT_UM_ADS_ALM) SQL (104 chars):
+  Select A_Adresse_ID From NE4.TA_VMBKT_FIBER Where A_Org In (5, 6, 8) And A_TV_FIBER = 9 And Rownum <= 10
 [Oracle] SID-format detected → TNS descriptor: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=MAMASGIT1)))
 [Oracle] getPool: user=KRAKEN_TEST rawConnectString="qlt0038-scan.kabeldeutschland.de:1521:MAMASGIT1"
 [Oracle]   → resolved connectString="(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=MAMASGIT1)))"
 [Oracle] Reusing existing pool for KRAKEN_TEST@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=MAMASGIT1)))
 [Oracle] Getting connection from pool...
-[Oracle] Executing query (296 chars)...
-[Oracle] Query execution failed: ORA-00904: "A_ADRESSE_ID": invalid identifier
-Help: https://docs.oracle.com/error-help/db/ora-00904/
+[Oracle] Executing query (104 chars)...
+[Oracle] Query returned 10 row(s).
+[KRAKEN] [UM] MAMAS returned 10 row(s).
+[KRAKEN] [UM] Resolving ADS connection for env=GIT...
+[Oracle] Resolving connection: env=GIT app=ADS region=00
+[Oracle-PLE] Skipping PLE lookup (Thick Mode not available)
+[Oracle] Using static fallback for env=GIT app=ADS region=00
+[Oracle-Config] getFallbackDbConfig: env="GIT" (→ key "GIT") app="ADS" region="00"
+[Oracle-Config] ADS URL for key "GIT": jdbc:oracle:thin:KRAKEN_TEST/MAMAS_TEST_77_Kraken@qlt0038-scan.kabeldeutschland.de:1521:adsgit1
+[Oracle-Config] ADS parsed: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:adsgit1
+[Oracle] ✓ Fallback resolved: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:adsgit1
+[KRAKEN] [UM] ADS connection: user=KRAKEN_TEST connectString=qlt0038-scan.kabeldeutschland.de:1521:adsgit1
+[KRAKEN] ADS (UM) SQL (311 chars):
+  Select /*+ parallel(30) */ A_Adresse_ID As OBJEKT_ID, A_UM_GEBAEUDE_ID As UM_ADRESSE_ID, A_PLZ || ' ' || A_ORTSNAME || ', ' || A_STRNAME || ' ' || A_HAUSNR || ' ' || A_HAUSNR_ZUS AS ADRESSE, A_REF_TELEFONIE_ONKZ AS ONKZ From ADS.TA_ADRESSE Where A_ADRESSE_ID In (, , , , , , , , , ) And Rownum <= 10
+[Oracle] SID-format detected → TNS descriptor: (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=adsgit1)))
+[Oracle] getPool: user=KRAKEN_TEST rawConnectString="qlt0038-scan.kabeldeutschland.de:1521:adsgit1"
+[Oracle]   → resolved connectString="(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=adsgit1)))"
+[Oracle] Reusing existing pool for KRAKEN_TEST@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=qlt0038-scan.kabeldeutschland.de)(PORT=1521))(CONNECT_DATA=(SID=adsgit1)))
+[Oracle] Getting connection from pool...
+[Oracle] Executing query (311 chars)...
+[Oracle] Query execution failed: ORA-00936: missing expression
+Help: https://docs.oracle.com/error-help/db/ora-00936/
 [KRAKEN] ===== Search FAILED =====
-[KRAKEN] Error: ORA-00904: "A_ADRESSE_ID": invalid identifier
-Help: https://docs.oracle.com/error-help/db/ora-00904/
+[KRAKEN] Error: ORA-00936: missing expression
+Help: https://docs.oracle.com/error-help/db/ora-00936/
 [KRAKEN] Stack:
-Error: ORA-00904: "A_ADRESSE_ID": invalid identifier
-Help: https://docs.oracle.com/error-help/db/ora-00904/
+Error: ORA-00936: missing expression
+Help: https://docs.oracle.com/error-help/db/ora-00936/
     at Protocol._processMessage (/home/Rothenberger.Ricardo/kraken/node_modules/.pnpm/oracledb@6.10.0/node_modules/oracledb/lib/thin/protocol/protocol.js:204:17)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async ThinConnectionImpl._execute (/home/Rothenberger.Ricardo/kraken/node_modules/.pnpm/oracledb@6.10.0/node_modules/oracledb/lib/thin/connection.js:225:7)
@@ -38,7 +58,7 @@ Help: https://docs.oracle.com/error-help/db/ora-00904/
     at async Connection.execute (/home/Rothenberger.Ricardo/kraken/node_modules/.pnpm/oracledb@6.10.0/node_modules/oracledb/lib/connection.js:1002:16)
     at async Connection.execute (/home/Rothenberger.Ricardo/kraken/node_modules/.pnpm/oracledb@6.10.0/node_modules/oracledb/lib/util.js:298:16)
     at async executeOracleQuery (/home/Rothenberger.Ricardo/kraken/server/oracle-db.ts:178:20)
-    at async searchVkd (/home/Rothenberger.Ricardo/kraken/server/kraken-service.ts:158:21)
-    at async searchAddresses (/home/Rothenberger.Ricardo/kraken/server/kraken-service.ts:74:9)
+    at async searchUm (/home/Rothenberger.Ricardo/kraken/server/kraken-service.ts:267:19)
+    at async searchAddresses (/home/Rothenberger.Ricardo/kraken/server/kraken-service.ts:73:9)
     at async <anonymous> (/home/Rothenberger.Ricardo/kraken/server/kraken-routes.ts:34:22)
 [KRAKEN] ===========================
