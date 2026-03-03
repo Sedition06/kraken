@@ -168,6 +168,14 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
 
   // ── Subqueries against other tables (joined via A_ADRESSE_ID) ──
 
+  // O2-Checkbox → NE4.TA_VMBKT_OBJEKT WHERE A_WSF = 'J'
+  // Groovy: params.ta_vmbkt_objekt.a_wsf = 'J' → queryTaVmbktObjekt adds this as a condition
+  if (params.o2) {
+    subqueryParts.push(
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_OBJEKT Where A_WSF = 'J')`
+    );
+  }
+
   // DOCSIS, ABK, FTTB → NE4.TA_VMBKT_OBJEKT
   const objektConditions: string[] = [];
   if (params.docsis) {

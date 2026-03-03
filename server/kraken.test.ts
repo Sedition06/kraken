@@ -65,6 +65,29 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
     expect(sql).not.toContain("KAI_WORKFLOW");
   });
 
+  it("adds A_WSF = 'J' subquery against TA_VMBKT_OBJEKT when O2 is enabled (VKD)", () => {
+    const sql = buildVkdMamasQuery({
+      environment: "GIT",
+      footprint: "Vodafone Kabel",
+      o2: true,
+      wfKai: "B",
+    });
+    // Groovy: params.ta_vmbkt_objekt.a_wsf = 'J' → queryTaVmbktObjekt adds subquery
+    expect(sql).toContain("NE4.TA_VMBKT_OBJEKT");
+    expect(sql).toContain("A_WSF = 'J'");
+    expect(sql).toContain("KAI_WOR_VFW = 'B'");
+  });
+
+  it("does NOT add A_WSF subquery when O2 is not enabled (VKD)", () => {
+    const sql = buildVkdMamasQuery({
+      environment: "GIT",
+      footprint: "Vodafone Kabel",
+      wfKai: "B",
+    });
+    expect(sql).not.toContain("A_WSF");
+    expect(sql).toContain("KAI_WORKFLOW = 'B'");
+  });
+
   it("uses KAI_WORKFLOW when O2 is not enabled", () => {
     const sql = buildVkdMamasQuery({
       environment: "GIT",
