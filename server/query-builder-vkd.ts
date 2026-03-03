@@ -109,8 +109,11 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
   }
 
   // Direkt Versorgt (OBJ_VERSORGUNGSART)
-  if (params.direktVersorgt && params.direktVersorgt !== "*") {
-    viewConditions.push(`OBJ_VERSORGUNGSART = '${params.direktVersorgt}'`);
+  // Ja → = 'D', Nein → <> 'D'
+  if (params.direktVersorgt === "J") {
+    viewConditions.push(`OBJ_VERSORGUNGSART = 'D'`);
+  } else if (params.direktVersorgt === "N") {
+    viewConditions.push(`OBJ_VERSORGUNGSART <> 'D'`);
   }
 
   // Max WE (OBJ_MAX_WE)
@@ -177,7 +180,7 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
   }
   if (objektConditions.length > 0) {
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_OBJEKT Where ${objektConditions.join(" And ")})`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_OBJEKT Where ${objektConditions.join(" And ")})`
     );
   }
 
@@ -191,7 +194,7 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
   }
   if (contractConditions.length > 0) {
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_WIZ_CUSTOMER_CONTRACTS Where ${contractConditions.join(" And ")})`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_WIZ_CUSTOMER_CONTRACTS Where ${contractConditions.join(" And ")})`
     );
   }
 
@@ -199,21 +202,21 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
   if (params.vertragscodes && params.vertragscodes.length > 0) {
     const contractList = params.vertragscodes.map(c => `'${c}'`).join(", ");
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_WIZ_CUSTOMER_CONTRACTS Where CONTRACT_CODE In (${contractList}) And CONTRACT_STATUS = 'AK')`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_WIZ_CUSTOMER_CONTRACTS Where CONTRACT_CODE In (${contractList}) And CONTRACT_STATUS = 'AK')`
     );
   }
 
   // Gestattungsvertrag (CCB1) → NE4.V_VERMARKTBARKEIT_OBJEKT
   if (params.gestattungsvertrag && params.gestattungsvertrag !== "0") {
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_VERMARKTBARKEIT_OBJEKT Where A_CCB1 = '${params.gestattungsvertrag}')`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_VERMARKTBARKEIT_OBJEKT Where A_CCB1 = '${params.gestattungsvertrag}')`
     );
   }
 
   // Anschlussvertrag (CCB2) → NE4.V_VERMARKTBARKEIT_OBJEKT
   if (params.anschlussvertrag && params.anschlussvertrag !== "0") {
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_VERMARKTBARKEIT_OBJEKT Where A_CCB2 = '${params.anschlussvertrag}')`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.V_VERMARKTBARKEIT_OBJEKT Where A_CCB2 = '${params.anschlussvertrag}')`
     );
   }
 
@@ -222,11 +225,11 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
     const bpVal = `'${params.bpKai}'`;
     if (params.bpKai === "N") {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAI Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) Or A_MBO_FLAG_KAN_GRP IS NULL))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAI Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) Or A_MBO_FLAG_KAN_GRP IS NULL))`
       );
     } else {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAI Where A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAI Where A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
       );
     }
   }
@@ -236,11 +239,11 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
     const bpVal = `'${params.bpKaa}'`;
     if (params.bpKaa === "N") {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAA') Or (A_MBO_FLAG_KAN_GRP IS NULL And A_DIENSTKATEGORIE = 'KAA'))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAA') Or (A_MBO_FLAG_KAN_GRP IS NULL And A_DIENSTKATEGORIE = 'KAA'))`
       );
     } else {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAA') OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAA') OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
       );
     }
   }
@@ -250,11 +253,11 @@ export function buildVkdMamasQuery(params: VkdSearchParams, addressIdFilter?: nu
     const bpVal = `'${params.bpKad}'`;
     if (params.bpKad === "N") {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAD') Or (A_MBO_FLAG_KAN_GRP IS NULL And A_DIENSTKATEGORIE = 'KAD'))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAD') Or (A_MBO_FLAG_KAN_GRP IS NULL And A_DIENSTKATEGORIE = 'KAD'))`
       );
     } else {
       subqueryParts.push(
-        `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAD') OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
+        `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_KAA_KAD Where (A_MBO_FLAG_KAN_GRP IN (SELECT A_KANAL_GRUPPE_ID FROM NE4.TA_KANAL_GRUPPE WHERE A_PUB = ${bpVal}) And A_DIENSTKATEGORIE = 'KAD') OR A_ADRESSE_ID In (SELECT A_ADRESSE_ID FROM NE4.TA_VMBKT_OBJEKT WHERE A_CCB2 in ('A','C','F','L','E','D')))`
       );
     }
   }

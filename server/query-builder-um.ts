@@ -129,7 +129,7 @@ export function buildUmMamasQuery(params: UmSearchParams, addressIdFilter?: numb
   // DOCSIS → NE4.TA_VMBKT_UM_DELPHI
   if (params.docsis) {
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_UM_DELPHI Where A_DOCSIS = '${params.docsis}')`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_UM_DELPHI Where A_DOCSIS = '${params.docsis}')`
     );
   }
 
@@ -144,7 +144,7 @@ export function buildUmMamasQuery(params: UmSearchParams, addressIdFilter?: numb
   if (params.o2 && params.wfKai === "S") {
     // The Überlastung filter needs the delphi segment
     subqueryParts.push(
-      `A_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_UM_DELPHI Where A_Segment In (Select A_SEGMENT From NE4.TA_SEGMENT_KPI_WOCHE Where A_WS_KPI_PT_DS_US = 'R'))`
+      `OBJ_ADRESSE_ID In (Select A_ADRESSE_ID From NE4.TA_VMBKT_UM_DELPHI Where A_Segment In (Select A_SEGMENT From NE4.TA_SEGMENT_KPI_WOCHE Where A_WS_KPI_PT_DS_US = 'R'))`
     );
   }
 

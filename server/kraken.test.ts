@@ -85,7 +85,7 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
       maxWeBis: "50",
     });
     expect(sql).toContain("SEL_TV = 'J'");
-    expect(sql).toContain("OBJ_VERSORGUNGSART = 'J'");
+    expect(sql).toContain("OBJ_VERSORGUNGSART = 'D'");
     expect(sql).toContain("OBJ_MAX_WE >= '5'");
     expect(sql).toContain("OBJ_MAX_WE <= '50'");
   });

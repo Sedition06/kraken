@@ -71,3 +71,11 @@
 ## Bugfix Phase 10
 - [x] Oracle Pool-Cache-Key: 80-Zeichen-Kürzung entfernt → MAMAS/ADS-Pool-Verwechslung behoben
 - [x] Tests bestanden (42) + GitHub Push
+
+## Bugfix Phase 11
+- [x] Direkt Versorgt: OBJ_VERSORGUNGSART = 'D' (Ja) / <> 'D' (Nein)
+- [x] VKD Subquery-JOIN: OBJ_ADRESSE_ID IN (SELECT A_ADRESSE_ID FROM ...) - alle 9 Subqueries korrigiert
+- [x] UM Query-Builder: OBJ_ADRESSE_ID IN (...) - beide Subqueries korrigiert
+- [x] oracle-config.ts NICHT geändert
+- [x] Tests bestanden (42)
+- [ ] GitHub Push
