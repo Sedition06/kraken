@@ -131,7 +131,7 @@ async function searchVkd(params: VkdSearchParams): Promise<SearchResponse> {
     const adsParams = await getDbConnectionParams(env, "ADS", "00");
     console.log(`[KRAKEN] [VKD] ADS connection: ${maskParams(adsParams)}`);
 
-    const plzIdSql = buildPlzSearchQuery(params.plz, true, "10000");
+    const plzIdSql = buildPlzSearchQuery(params.plz, true, "1000");
     allSql = plzIdSql;
     logSql("ADS PLZ ID-fetch", plzIdSql);
 

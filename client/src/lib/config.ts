@@ -1,6 +1,6 @@
 // Kraken Configuration - migrated from Config.groovy and ConfigEng.groovy
 
-export const VERSION = "2025.04.14";
+export const VERSION = "2026.03.10";
 
 // CDN URLs for images
 export const IMAGES = {

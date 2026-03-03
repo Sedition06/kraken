@@ -248,11 +248,11 @@ describe("VKD Query Builder (V_VMBKT_ADS_ALM)", () => {
 
 describe("PLZ Search (ADS.TA_ADRESSE)", () => {
   it("builds PLZ ID-only query with A_V_PLZ_SUCH (indexed)", () => {
-    const sql = buildPlzSearchQuery("50667", true, "10000");
+    const sql = buildPlzSearchQuery("50667", true, "1000");
     expect(sql).toContain("ADS.TA_ADRESSE");
     expect(sql).toContain("A_V_PLZ_SUCH = '50667'");
     expect(sql).toContain("A_SERVICEADRESSE = 'J'");
-    expect(sql).toContain("Rownum <= 10000");
+    expect(sql).toContain("Rownum <= 1000");
     expect(sql).not.toContain("A_PLZ ="); // Must NOT use A_PLZ (not indexed)
   });
 

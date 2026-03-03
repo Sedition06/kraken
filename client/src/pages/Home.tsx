@@ -162,7 +162,7 @@ export default function Home() {
         {/* ===== HEADER / NAVBAR ===== */}
         <nav
           style={{ backgroundColor: "#ffb3b3", width: "875px", padding: "8px 12px", position: "sticky", top: 0, zIndex: 100, borderRadius: "4px 4px 0 0" }}
-          title="This page is optimized for browsers with Chromium engine."
+          title=""
         >
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <tbody>
