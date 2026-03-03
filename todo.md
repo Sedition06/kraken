@@ -62,3 +62,12 @@
 ## Bugfix Phase 8
 - [x] A_ADRESSE_ID → OBJ_ADRESSE_ID in Views (V_VMBKT_ADS_ALM, V_VMBKT_UM_ADS_ALM)
 - [x] Tests bestanden (42) + GitHub Push
+
+## Bugfix Phase 9
+- [ ] ADS-Abfrage (ads.ta_adresse) gegen ADS_URLS statt MAMAS_URLS verbinden
+- [ ] oracle-config.ts nicht überschreiben (Nutzer hat URLs angepasst)
+- [x] Tests bestanden (42) + GitHub Push
+
+## Bugfix Phase 10
+- [x] Oracle Pool-Cache-Key: 80-Zeichen-Kürzung entfernt → MAMAS/ADS-Pool-Verwechslung behoben
+- [x] Tests bestanden (42) + GitHub Push

@@ -119,7 +119,9 @@ function buildConnectString(raw: string): string {
  */
 async function getPool(params: OracleConnectParams): Promise<oracledb.Pool> {
   const connectString = buildConnectString(params.connectString);
-  const key = `${params.user}@${connectString.substring(0, 80)}`;
+  // Use the full connect string in the key to avoid collisions between databases
+  // that share the same host/port but differ only in SID (e.g. MAMAS vs ADS on same scan listener)
+  const key = `${params.user}@${connectString}`;
 
   console.log(`[Oracle] getPool: user=${params.user} rawConnectString="${params.connectString}"`);
   console.log(`[Oracle]   → resolved connectString="${connectString}"`);
